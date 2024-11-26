@@ -1,0 +1,28 @@
+<div *ngIf="isOpen" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+  <div class="bg-white w-96 p-6 rounded-lg shadow-lg">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-semibold text-black">Seleccione su dirección</h2>
+      <button (click)="close()" class="text-gray-500 hover:text-gray-700">
+        &times;
+      </button>
+    </div>
+    <p class="text-gray-600">Al confirmar su pedido, sera rederigido a "Ver pedidos", para ver el estado de su
+      pedido. </p>
+    <div class="mt-4">
+      <label for="quantity-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-black">
+        Dirección:
+      </label>
+      <select (change)="onCambiarDireccion($event)" class="text-black">
+        <option value="" selected disabled>Seleccione una dirección:</option>
+        <option *ngFor="let direccion of direcciones()" [value]="direccion.id_direccion">
+          {{direccion.calle}} {{ direccion.numero }} {{direccion.apto}}
+        </option>
+      </select>
+      <button (click)="confirmarPedido()" [disabled]="!direccionBool"
+        class="w-full bg-blue-700 text-white py-2 mt-4 rounded-full flex items-center justify-between px-4 hover:bg-blue-800 disabled:bg-gray-400 disabled:text-gray-700 disabled:cursor-not-allowed">
+        <span class="flex items-center w-full">
+          <span class="flex-grow text-center"> Confirmar mi pedido </span>
+        </span>
+      </button>
+    </div>
+  </div>
