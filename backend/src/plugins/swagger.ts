@@ -31,6 +31,10 @@ const options: SwaggerOptions = {
       { name: "Categorias", description: "CRUD de categorias" },
       { name: "Detalle_Pedidos", description: "CRUD de detalles pedidos" },
       { name: "Direcciones", description: "Consultas con direcciones" },
+      {
+        name: "ListaNegra",
+        description: "Consultas de contraseñas no admitidas",
+      },
     ],
     components: {
       securitySchemes: {

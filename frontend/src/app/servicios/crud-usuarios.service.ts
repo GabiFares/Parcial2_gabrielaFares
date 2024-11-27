@@ -22,6 +22,16 @@ export class CRUDUsuariosService {
     }
   }
 
+  async getUsers() {
+    try {
+      // Realiza una solicitud GET a la API para obtener el usuario por su ID
+      const response = await this.apiService.get(`usuarios`);
+      return response; // Retorna la respuesta de la API
+    } catch (error) {
+      console.log(error); // Maneja errores en la consola
+    }
+  }
+
   // Constructor del servicio
   constructor() {}
 }

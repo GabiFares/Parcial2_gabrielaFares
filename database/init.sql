@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     email VARCHAR(50) NOT NULL UNIQUE,
     id_direccion INTEGER NOT NULL,
     id_telefono INTEGER NOT NULL,
-    contraseña VARCHAR(225) NOT NULL,
+    contraseña VARCHAR(225) NOT NULL, 
     foto BOOLEAN NULL,
     admin BOOLEAN NOT NULL DEFAULT FALSE,
     repartidor BOOLEAN NOT NULL DEFAULT FALSE
@@ -89,6 +89,10 @@ CREATE TABLE IF NOT EXISTS pedido (
         REFERENCES direccion (id) ON DELETE RESTRICT
 );
 
+CREATE TABLE IF NOT EXISTS lista_negra (
+    contraseña VARCHAR(225) NOT NULL
+);  
+
 -- Crear la tabla detalle_pedido con claves foráneas a pedido y producto
 CREATE TABLE IF NOT EXISTS detalle_pedido (
     cantidad INTEGER NOT NULL, 
@@ -117,8 +121,19 @@ INSERT INTO usuario (nombre, apellido, email, id_direccion, id_telefono, contras
 VALUES('Repar', 'Tidor', 'repartidor@example.com', 1, 1, crypt('Contraseña123!', gen_salt('bf')));
 UPDATE usuario SET repartidor = TRUE WHERE id = 2;
 
+--Usuario Melnik Admin
+INSERT INTO usuario (nombre, apellido, email, id_direccion, id_telefono, contraseña) 
+VALUES('Jorge', 'Melnik', 'jmelnik19@gmail.com', 1, 1, crypt('@Jmelnik19', gen_salt('bf')));
+UPDATE usuario SET admin = TRUE WHERE id = 3;
+
+--Usuario Melnik NotAdmin
+INSERT INTO usuario (nombre, apellido, email, id_direccion, id_telefono, contraseña) 
+VALUES('Gabriela', 'Fares', 'gabriela@fares.com', 1, 1, crypt('@FaresGabriela1', gen_salt('bf')));
+UPDATE usuario SET admin = FALSE WHERE id = 4;
+
 INSERT INTO usuarios_direcciones (id_usuario,id_direccion) VALUES (1,1);
 INSERT INTO usuarios_direcciones (id_usuario,id_direccion) VALUES (2,2);
+
 -- Insertar categorías iniciales
 INSERT INTO categoria (nombre) VALUES('COMIDA');
 INSERT INTO categoria (nombre) VALUES('BEBIDA');
@@ -135,6 +150,18 @@ VALUES
 ('Hamburguesa Vegetariana', 'Hamburguesa con hamburguesa de lentejas y verduras frescas', 450, 1, true),
 ('Coca-cola', 'Coca de 500ml', 70, 2, true),
 ('Agua Mineral', 'Botella de agua mineral de 500ml', 50, 2, true);
+
+-- Insertar lista negra de contraseña 
+INSERT INTO lista_negra (contraseña)
+VALUES
+('@Contraseña123'), 
+('@Contrasela1234'), 
+('.Contraseña123'), 
+('.Contraseña1234'), 
+('@Contraseña12'), 
+('.Contraseña12'), 
+('@Contraseña1'), 
+('.Contraseña1');
 
 -- Insertar datos adicionales en las tablas telefono y direccion
 INSERT INTO telefono (numeroTel) VALUES('098777234');

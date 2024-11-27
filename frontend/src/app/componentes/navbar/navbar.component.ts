@@ -28,6 +28,7 @@ export class NavbarComponent implements OnInit {
     foto: 'assets/default-user.png',
   };
 
+  isAdmin: boolean = true;
   isDropdownOpen = false;
 
   @Input() withSearch: boolean = true;
@@ -55,6 +56,7 @@ export class NavbarComponent implements OnInit {
         const token = localStorage.getItem('token');
         if (token) {
           const idToken = JSON.parse(atob(token.split('.')[1]));
+          this.isAdmin = idToken.isAdmin;
           const usuarioGet = await this.crudUsuarios.getUserById(idToken.id);
           this.usuario.nombre = `${usuarioGet.nombre}`;
           if (usuarioGet.foto == true) {

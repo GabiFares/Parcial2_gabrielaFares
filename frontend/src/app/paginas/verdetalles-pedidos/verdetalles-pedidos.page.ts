@@ -7,12 +7,22 @@ import { CommonModule, JsonPipe, NgFor } from '@angular/common'; // Importa Comm
 import { MapaPedidosComponent } from '../../componentes/mapa-pedidos/mapa-pedidos.component';
 import { CRUDdireccionesService } from '../../servicios/direcciones/cruddirecciones.service';
 import { AuthService } from '../../servicios/auth.service';
+import { Producto } from '../../interfaces/producto';
+import GetPedidosService from '../../servicios/pedidos/get-pedidos.service';
+import { Pedido, PedidoItem } from '../../interfaces/pedido';
+import { AddToCartComponent } from '../../componentes/add-to-cart/add-to-cart.component';
 
 @Component({
   selector: 'app-verdetalles-pedidos', // Define el selector del componente, que se utiliza en el HTML
   templateUrl: './verdetalles-pedidos.page.html', // Especifica la ubicación del archivo de plantilla HTML del componente
   standalone: true, // Indica que el componente es autónomo
-  imports: [MapaPedidosComponent, NavbarComponent, NgFor, CommonModule], // Importa componentes y directivas necesarias
+  imports: [
+    MapaPedidosComponent,
+    NavbarComponent,
+    NgFor,
+    CommonModule,
+    AddToCartComponent,
+  ], // Importa componentes y directivas necesarias
 })
 export class VerdetallesPedidosPage implements OnInit {
   // Inyecta los servicios y rutas necesarias utilizando la función inject
@@ -23,14 +33,22 @@ export class VerdetallesPedidosPage implements OnInit {
   getDetalle_Pedido: GetDetallePedidosService = inject(
     GetDetallePedidosService,
   );
-  private getDireccionID: CRUDdireccionesService = inject(CRUDdireccionesService);
+  private getDireccionID: CRUDdireccionesService = inject(
+    CRUDdireccionesService,
+  );
 
   // Inicializa las propiedades para almacenar los detalles de los pedidos y productos
   detalle_pedidos: any[] = [];
   productos: any[] = [];
   address = signal<string>('');
   repartidor = signal<boolean>(false);
-  constructor() { }
+  productoSeleccionado: any = null;
+  actualizar: boolean = false;
+  modalIsOpen: boolean = false;
+  constructor(
+    private authService: AuthService,
+    private getPedidoService: GetPedidosService,
+  ) {}
 
   // Método para obtener el nombre del producto por su ID
   getProducto(id_producto: string) {
@@ -55,13 +73,79 @@ export class VerdetallesPedidosPage implements OnInit {
       // Espera a que se resuelvan todas las promesas de productos
       this.productos = await Promise.all(productoslista);
 
-      let direccion = await this.getDireccionID.getDireccionesByID(this.activatedRoute.snapshot.queryParams['id_direccion']);
+      let direccion = await this.getDireccionID.getDireccionesByID(
+        this.activatedRoute.snapshot.queryParams['id_direccion'],
+      );
       this.address.set(`${direccion.calle} ${direccion.numero}`);
       this.repartidor.set(this.repartidorCheck.isRepartidor());
-
     } else {
       // Navega a la ruta de inicio si no hay un ID de pedido en los parámetros de la ruta
       this.router.navigate(['']);
     }
+  }
+
+  async agregarAlCarrito(detallePedido: any) {
+    const productoId = detallePedido.id_producto;
+    const producto = this.cargarProducto.getProductoById(productoId);
+    console.log('productooo', producto);
+    try {
+      const pedidosUsuario = await this.getPedidoService.getPedidoById(
+        this.authService.getUserId(),
+      );
+
+      if (pedidosUsuario.length > 0) {
+        const pedidoPendiente = pedidosUsuario.find(
+          (pedido: Pedido) => pedido.estado === 'PENDIENTE',
+        );
+        console.log(
+          'pedido pendiente' + JSON.stringify(pedidoPendiente, null, 2),
+        );
+
+        if (pedidoPendiente && pedidoPendiente.items) {
+          const productoExistente = pedidoPendiente.items.find(
+            (item: PedidoItem) =>
+              item.id_producto === detallePedido.id_producto,
+          );
+
+          console.log(
+            'producto existente ' + JSON.stringify(productoExistente),
+          );
+          if (productoExistente) {
+            // Pasa los datos del producto existente al modal
+            console.log('llega al true');
+            this.modalIsOpen = true;
+            this.productoSeleccionado = {
+              ...producto,
+              cantidad: productoExistente.cantidad,
+              nota: productoExistente.indicaciones,
+            };
+            console.log(
+              'producto seleccionado',
+              JSON.stringify(this.productoSeleccionado),
+            );
+            this.actualizar = true;
+            return;
+          }
+        }
+      }
+      this.defaultAddToCart(
+        producto,
+        detallePedido.cantidad,
+        detallePedido.nota,
+      );
+    } catch (error) {
+      console.error('Error al verificar el carrito:', error);
+    }
+  }
+
+  defaultAddToCart(producto: any, cantidad: any, nota: any) {
+    this.modalIsOpen = true;
+    this.actualizar = false;
+    this.productoSeleccionado = { ...producto, cantidad, nota };
+  }
+
+  closeModal() {
+    this.productoSeleccionado = null;
+    this.modalIsOpen = false;
   }
 }
